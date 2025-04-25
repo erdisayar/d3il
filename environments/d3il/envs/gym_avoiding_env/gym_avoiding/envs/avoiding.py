@@ -1,5 +1,7 @@
 import numpy as np
 import copy
+import sys
+sys.path.append('/home/erdi/Desktop/Storage/dpcc/d3il')
 from environments.d3il.d3il_sim.sims.mj_beta.mj_utils.mj_helper import has_collision
 from environments.d3il.d3il_sim.utils.sim_path import d3il_path
 
@@ -9,7 +11,7 @@ from environments.d3il.d3il_sim.core.logger import ObjectLogger, CamLogger
 from environments.d3il.d3il_sim.sims.mj_beta.MjRobot import MjRobot
 from environments.d3il.d3il_sim.sims.mj_beta.MjFactory import MjFactory
 from environments.d3il.d3il_sim.sims import MjCamera
-
+from environments.d3il.d3il_sim.sims.universal_sim.PrimitiveObjects import Box, Sphere, Cylinder
 from .objects.avoiding_objects import get_obj_list, \
     init_end_eff_pos, \
     get_obj_xy_list
@@ -165,10 +167,23 @@ class ObstacleAvoidanceEnv(GymEnvWrapper):
             desiredPos=initial_cart_position, desiredQuat=[0, 1, 0, 0], duration=0.5
         )
 
+    def get_obstacle_position(self):
+        obstacle_pos = {}
+        for obstacle in obj_list:
+            if isinstance(obstacle, Cylinder):
+                self.scene._get_obj_pos(None,obstacle)
+            obstacle_pos[obstacle.name] = self.scene._get_obj_pos(None, obstacle)
+        return obstacle_pos   
+
     def step(self, action, gripper_width=None):
+        new_pos = self.scene._get_obj_pos(None,obj_list[2])
+        offset = 0.005 * np.sin(-1 * self.env_step_counter * 0.5) 
+        new_pos += np.array([offset,0,0])
+        self.scene._set_obj_pos(new_pos,obj_list[2])
+        print(new_pos)
         observation, reward, done, _ = super().step(action, gripper_width)
         self.check_mode()
-        return observation, reward, done, (self.mode_encoding, self.success)
+        return observation, reward, done, (self.mode_encoding, self.success, self.get_obstacle_position())
 
     def check_mode(self):
         r_x_pos = self.robot.current_c_pos[0]

@@ -29,7 +29,7 @@ def get_obj_list():
                  init_pos=[mid_pos + offset, first_level_y + level_distance, 0],
                  init_quat=[1, 0, 0, 0],
                  size=[0.025, 0.1],
-                 rgba=[1, 0, 0, 1],
+                 rgba=[1, 1, 0, 1],
                  static=True),
 
         Cylinder(name='l3_top_obs',
